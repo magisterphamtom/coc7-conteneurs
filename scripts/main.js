@@ -13,40 +13,80 @@ const isContainer = (item) => item?.type === 'item' && item.getFlag(ID, 'isConta
 const getContents = (item) => { const c = item.getFlag(ID, 'contents'); return Array.isArray(c) ? c : [] }
 const setContents = (item, arr) => item.setFlag(ID, 'contents', arr)
 
-/** Range un objet (copie) dans le conteneur ; l'original est supprimé s'il appartient à un acteur. */
-async function storeItem (container, source) {
-  if (source.uuid === container.uuid) { ui.notifications.warn('Un conteneur ne peut pas se contenir lui-même.'); return }
+/** Parcourt les poupées russes : renvoie { entries, entry } du nœud désigné par path (liste d'entryId). */
+function getNode (root, path = []) {
+  let entries = getContents(root); let entry = null
+  for (const id of path) {
+    entry = entries.find((e) => e.entryId === id)
+    if (!entry) return null
+    entries = entry.data?.flags?.[ID]?.contents ?? []
+  }
+  return { entries, entry }
+}
+
+/** Modifie la liste d'un nœud (racine ou imbriqué) puis enregistre le tout sur l'objet racine. */
+async function mutate (root, path, fn) {
+  const rootEntries = foundry.utils.deepClone(getContents(root))
+  let list = rootEntries
+  for (const id of path) {
+    const e = list.find((x) => x.entryId === id)
+    if (!e) return false
+    e.data.flags ??= {}; e.data.flags[ID] ??= {}; e.data.flags[ID].contents ??= []
+    list = e.data.flags[ID].contents
+  }
+  fn(list)
+  await setContents(root, rootEntries)
+  return true
+}
+
+/** Range un objet (copie) dans le conteneur désigné ; l'original est supprimé s'il appartient à un acteur. */
+async function storeItem (root, path, source) {
+  if (source.uuid === root.uuid) { ui.notifications.warn('Un conteneur ne peut pas se contenir lui-même.'); return }
   if (!ACCEPTED.includes(source.type)) { ui.notifications.warn('Ce type d\'élément ne peut pas être rangé dans un conteneur.'); return }
   const data = source.toObject()
   delete data._id; delete data.folder; delete data.ownership; delete data.sort
-  const entries = [...getContents(container), { entryId: foundry.utils.randomID(), data }]
-  await setContents(container, entries)
-  if (source.parent && source.isOwner) await source.delete()
+  const ok = await mutate(root, path, (list) => list.push({ entryId: foundry.utils.randomID(), data }))
+  if (ok && source.parent && source.isOwner) await source.delete()
 }
 
-/** Sort un objet du conteneur vers un acteur (ou en objet du monde si le conteneur n'est pas sur un acteur). */
-async function takeOut (container, entryId, targetActor = null) {
-  const entries = getContents(container)
-  const entry = entries.find((e) => e.entryId === entryId)
-  if (!entry) return
+/** Sort un objet d'un conteneur vers un acteur (ou en objet du monde si le conteneur n'est pas sur un acteur). */
+async function takeOut (root, path, entryId, targetActor = null) {
+  const node = getNode(root, path); if (!node) return
+  const entry = node.entries.find((e) => e.entryId === entryId); if (!entry) return
   const data = foundry.utils.deepClone(entry.data)
-  const actor = targetActor ?? container.parent
+  const actor = targetActor ?? root.parent
   if (actor) await actor.createEmbeddedDocuments('Item', [data])
   else await Item.implementation.create(data)
-  await setContents(container, entries.filter((e) => e.entryId !== entryId))
+  await mutate(root, path, (list) => { list.splice(list.findIndex((e) => e.entryId === entryId), 1) })
 }
 
-async function dropOnContainer (event, container) {
+/** Déplace une entrée d'un conteneur (fenêtre) vers un autre conteneur. */
+async function moveEntry (src, root, path) {
+  const srcRoot = await fromUuid(src.containerUuid); if (!srcRoot) return
+  const srcNode = getNode(srcRoot, src.path ?? []); if (!srcNode) return
+  const entry = srcNode.entries.find((e) => e.entryId === src.entryId); if (!entry) return
+  if (srcRoot.uuid === root.uuid) {
+    const mine = [...(src.path ?? []), src.entryId]
+    if (mine.every((id, i) => path[i] === id)) { ui.notifications.warn('Un conteneur ne peut pas se ranger dans lui-même.'); return }
+    if ((src.path ?? []).join('/') === path.join('/')) return
+  }
+  const data = foundry.utils.deepClone(entry.data)
+  await mutate(root, path, (list) => list.push({ entryId: foundry.utils.randomID(), data }))
+  await mutate(srcRoot, src.path ?? [], (list) => { list.splice(list.findIndex((e) => e.entryId === src.entryId), 1) })
+}
+
+async function dropOnContainer (event, root, path = []) {
   let data
   try { data = JSON.parse(event.dataTransfer.getData('text/plain')) } catch (e) { return }
-  if (data?.type !== 'Item' || !data.uuid) return
-  const source = await fromUuid(data.uuid)
-  if (!source) return
-  try { await storeItem(container, source) } catch (e) {
+  try {
+    if (data?.type === `${ID}-entry`) return await moveEntry(data, root, path)
+    if (data?.type !== 'Item' || !data.uuid) return
+    const source = await fromUuid(data.uuid)
+    if (source) await storeItem(root, path, source)
+  } catch (e) {
     console.error(ID, e); ui.notifications.error('Impossible de ranger cet objet dans le conteneur (voir la console F12).')
   }
 }
-
 
 const PRESETS = ['Sac à main', 'Sac à dos', 'Valise', 'Besace', 'Mallette', 'Trousse', 'Coffret', 'Malle']
 
@@ -102,29 +142,40 @@ class ContainerApp extends foundry.applications.api.ApplicationV2 {
     position: { width: 440, height: 520 }
   }
 
-  constructor (item, options = {}) {
-    super(foundry.utils.mergeObject({ id: `${ID}-${item.uuid.replace(/\./g, '-')}` }, options))
+  constructor (item, path = [], options = {}) {
+    super(foundry.utils.mergeObject({ id: `${ID}-${item.uuid.replace(/\./g, '-')}-${path.join('-')}` }, options))
     this.item = item
+    this.path = path
   }
 
-  get title () { return this.item.name }
+  get key () { return `${this.item.uuid}|${this.path.join('/')}` }
+
+  get node () { return getNode(this.item, this.path) }
+
+  get title () { return this.path.length ? (this.node?.entry?.data?.name ?? this.item.name) : this.item.name }
 
   async _renderHTML () {
-    const entries = getContents(this.item)
+    const node = this.node
+    const entries = node?.entries ?? []
     const n = entries.length
+    const headImg = this.path.length ? node?.entry?.data?.img : this.item.img
+    const crumbs = this.path.length ? `<span class="cc-crumb">dans ${esc(this.item.name)}</span>` : ''
     const tiles = entries.map((e) => {
       const q = e.data?.system?.quantity
       const qty = (typeof q === 'number' && q > 1) ? `<span class="cc-qty">${q}</span>` : ''
-      return `<li class="cc-tile" data-entry-id="${e.entryId}" draggable="true">
+      const isBox = e.data?.flags?.[ID]?.isContainer === true
+      const inner = isBox ? (e.data.flags[ID].contents ?? []).length : 0
+      const badge = isBox ? `<span class="cc-nest" data-tooltip="Conteneur">${inner} <i class="fa-solid fa-suitcase"></i></span>` : ''
+      return `<li class="cc-tile${isBox ? ' cc-box' : ''}" data-entry-id="${e.entryId}" draggable="true">
         <div class="cc-frame">
           <img class="cc-img" src="${esc(e.data?.img)}" alt="" draggable="false">
-          ${qty}
+          ${qty}${badge}
           <div class="cc-actions">
             <a class="cc-btn" data-cc="take" data-tooltip="Sortir du conteneur"><i class="fa-solid fa-arrow-right-from-bracket"></i></a>
             ${game.user.isGM ? '<a class="cc-btn cc-danger" data-cc="remove" data-tooltip="Détruire (MJ)"><i class="fa-solid fa-trash"></i></a>' : ''}
           </div>
         </div>
-        <a class="cc-name" data-cc="view" data-tooltip="Voir la fiche">${esc(e.data?.name)}</a>
+        <a class="cc-name" data-cc="${isBox ? 'open' : 'view'}" data-tooltip="${isBox ? 'Ouvrir ce conteneur' : 'Voir la fiche'}">${esc(e.data?.name)}</a>
       </li>`
     }).join('')
     const body = n
@@ -132,8 +183,8 @@ class ContainerApp extends foundry.applications.api.ApplicationV2 {
       : `<div class="cc-empty"><i class="fa-solid fa-suitcase"></i><p>Ce conteneur est vide</p><small>Glisse un objet ici pour le ranger</small></div>`
     return `<div class="cc-wrap">
       <header class="cc-head">
-        <img class="cc-bag" src="${esc(this.item.img)}" alt="">
-        <div class="cc-titles"><h2>${esc(this.item.name)}</h2><span>${n} objet${n > 1 ? 's' : ''}</span></div>
+        <img class="cc-bag" src="${esc(headImg)}" alt="">
+        <div class="cc-titles"><h2>${esc(this.title)}</h2><span>${n} objet${n > 1 ? 's' : ''}</span>${crumbs}</div>
       </header>
       <div class="cc-zone">${body}<div class="cc-drop-hint"><i class="fa-solid fa-hand-holding"></i> Déposer pour ranger</div></div>
       <footer class="cc-foot">Glisse vers la fiche pour sortir un objet</footer>
@@ -144,44 +195,50 @@ class ContainerApp extends foundry.applications.api.ApplicationV2 {
 
   _onFirstRender () {
     const el = this.element
-    OPEN.set(this.item.uuid, this)
+    OPEN.set(this.key, this)
     el.addEventListener('click', async (ev) => {
       const a = ev.target.closest('[data-cc]'); if (!a) return
       const row = a.closest('[data-entry-id]'); if (!row) return
       const entryId = row.dataset.entryId
       try {
-        if (a.dataset.cc === 'take') await takeOut(this.item, entryId)
-        else if (a.dataset.cc === 'remove') {
-          const entries = getContents(this.item)
-          await setContents(this.item, entries.filter((e) => e.entryId !== entryId))
-        } else if (a.dataset.cc === 'view') {
-          const entry = getContents(this.item).find((e) => e.entryId === entryId)
-          const doc = new Item.implementation(foundry.utils.deepClone(entry.data))
-          doc.sheet.render(true)
+        if (a.dataset.cc === 'take') await takeOut(this.item, this.path, entryId)
+        else if (a.dataset.cc === 'remove') await mutate(this.item, this.path, (list) => { list.splice(list.findIndex((e) => e.entryId === entryId), 1) })
+        else if (a.dataset.cc === 'open') openContainer(this.item, [...this.path, entryId], this)
+        else if (a.dataset.cc === 'view') {
+          const entry = this.node.entries.find((e) => e.entryId === entryId)
+          new Item.implementation(foundry.utils.deepClone(entry.data)).sheet.render(true)
         }
       } catch (e) { console.error(ID, e); ui.notifications.error('Action impossible (voir la console F12).') }
     })
     el.addEventListener('dragstart', (ev) => {
       const row = ev.target.closest('[data-entry-id]'); if (!row) return
-      ev.dataTransfer.setData('text/plain', JSON.stringify({ type: `${ID}-entry`, containerUuid: this.item.uuid, entryId: row.dataset.entryId }))
+      el.classList.add('cc-self')
+      ev.dataTransfer.setData('text/plain', JSON.stringify({ type: `${ID}-entry`, containerUuid: this.item.uuid, path: this.path, entryId: row.dataset.entryId }))
     })
     let depth = 0
     const setDrop = (on) => el.classList.toggle('cc-dropping', on)
-    el.addEventListener('dragenter', (ev) => { if (ev.target.closest('[data-entry-id]') && el.classList.contains('cc-self')) return; depth++; setDrop(true) })
+    el.addEventListener('dragenter', () => { if (el.classList.contains('cc-self')) return; depth++; setDrop(true) })
     el.addEventListener('dragleave', () => { depth = Math.max(0, depth - 1); if (!depth) setDrop(false) })
     el.addEventListener('dragover', (ev) => { ev.preventDefault() })
-    el.addEventListener('dragstart', () => { el.classList.add('cc-self') })
     el.addEventListener('dragend', () => { el.classList.remove('cc-self'); depth = 0; setDrop(false) })
-    el.addEventListener('drop', (ev) => { ev.preventDefault(); ev.stopPropagation(); depth = 0; setDrop(false); dropOnContainer(ev, this.item) })
+    el.addEventListener('drop', (ev) => {
+      ev.preventDefault(); ev.stopPropagation(); depth = 0; setDrop(false)
+      const box = ev.target.closest('.cc-tile.cc-box')   // déposé sur un conteneur de la grille : on range dedans
+      const path = box ? [...this.path, box.dataset.entryId] : this.path
+      dropOnContainer(ev, this.item, path)
+    })
   }
 
-  async close (options) { OPEN.delete(this.item.uuid); return super.close(options) }
+  async close (options) { OPEN.delete(this.key); return super.close(options) }
 }
 
-function openContainer (item) {
-  const existing = OPEN.get(item.uuid)
+function openContainer (item, path = [], from = null) {
+  const key = `${item.uuid}|${path.join('/')}`
+  const existing = OPEN.get(key)
   if (existing) { existing.render({ force: true }); existing.bringToFront?.(); return }
-  new ContainerApp(item).render({ force: true })
+  const options = {}
+  if (from?.position) options.position = { left: (from.position.left ?? 100) + 36, top: (from.position.top ?? 100) + 36 }
+  new ContainerApp(item, path, options).render({ force: true })
 }
 
 /** Ajoute les boutons et la zone de dépôt sur les lignes d'objets des fiches d'acteurs. */
@@ -195,10 +252,11 @@ function decorateActorSheet (app, root) {
       let data
       try { data = JSON.parse(ev.dataTransfer.getData('text/plain')) } catch (e) { return }
       if (data?.type !== `${ID}-entry`) return
+      if (ev.target.closest?.('li.cc-container')) return   // déposé sur un conteneur de la fiche : c'est lui qui s'en occupe
       ev.preventDefault(); ev.stopPropagation()
       try {
         const container = await fromUuid(data.containerUuid)
-        if (container && app.document.isOwner) await takeOut(container, data.entryId, app.document)
+        if (container && app.document.isOwner) await takeOut(container, data.path ?? [], data.entryId, app.document)
       } catch (e) { console.error(ID, e); ui.notifications.error('Impossible de sortir cet objet (voir la console F12).') }
     }, true)
   }
@@ -246,9 +304,9 @@ function decorateActorSheet (app, root) {
       li.addEventListener('dragleave', () => li.classList.remove('cc-over'))
       li.addEventListener('drop', async (ev) => {
         let d; try { d = JSON.parse(ev.dataTransfer.getData('text/plain')) } catch (e) { return }
-        if (d?.type !== 'Item') return
+        if (d?.type !== 'Item' && d?.type !== `${ID}-entry`) return
         ev.preventDefault(); ev.stopPropagation(); li.classList.remove('cc-over')
-        await dropOnContainer(ev, item)
+        await dropOnContainer(ev, item, [])
       })
     } else if (game.user.isGM) {
       controls.prepend(make('make', 'fa-regular fa-suitcase', 'Faire de cet objet un conteneur (MJ)'))
@@ -274,6 +332,11 @@ Hooks.on('renderItemDirectory', (app, element) => {
     host.append(b)
   } catch (e) { console.error(ID, e) }
 })
-Hooks.on('updateItem', (item) => { OPEN.get(item.uuid)?.render() })
-Hooks.on('deleteItem', (item) => { OPEN.get(item.uuid)?.close() })
+Hooks.on('updateItem', (item) => {
+  for (const app of [...OPEN.values()]) {
+    if (app.item.uuid !== item.uuid) continue
+    if (app.node) app.render(); else app.close()
+  }
+})
+Hooks.on('deleteItem', (item) => { for (const app of [...OPEN.values()]) if (app.item.uuid === item.uuid) app.close() })
 Hooks.once('ready', () => console.log(`${ID} | prêt`))

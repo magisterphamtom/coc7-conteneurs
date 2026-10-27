@@ -38,3 +38,7 @@ li.item.cc-container .cc-ctrl { cursor: pointer; }
 
 .cc-new-dir { flex: 1 1 100%; margin-top: 4px; }
 .cc-new-sheet { cursor: pointer; margin-right: 4px; }
+
+.coc7-conteneurs-app .cc-nest { position: absolute; right: 3px; bottom: 3px; padding: 0 5px; font-size: 11px; font-weight: bold; color: #1b120c; background: var(--cc-gold); border-radius: 9px; }
+.coc7-conteneurs-app .cc-tile.cc-box .cc-frame { border-color: var(--cc-gold); box-shadow: 0 0 0 1px #000, 0 2px 8px #c9a24a55; }
+.coc7-conteneurs-app .cc-crumb { display: block; font-size: 11px; opacity: .7; }
