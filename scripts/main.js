@@ -47,6 +47,54 @@ async function dropOnContainer (event, container) {
   }
 }
 
+
+const PRESETS = ['Sac à main', 'Sac à dos', 'Valise', 'Besace', 'Mallette', 'Trousse', 'Coffret', 'Malle']
+
+/** Boîte de dialogue « Nouveau conteneur » : crée un objet-conteneur vide, dans le monde ou sur un acteur. */
+async function createContainer (actor = null) {
+  const { DialogV2 } = foundry.applications.api
+  const content = `<form class="cc-create">
+    <div class="form-group"><label>Modèle</label><select name="preset">${PRESETS.map((p) => `<option>${esc(p)}</option>`).join('')}<option value="">Autre…</option></select></div>
+    <div class="form-group"><label>Nom</label><input type="text" name="name" value="${esc(PRESETS[0])}"></div>
+    <div class="form-group"><label>Image</label><div class="form-fields"><input type="text" name="img" value="icons/svg/item-bag.svg"><button type="button" class="cc-pick" data-tooltip="Choisir une image"><i class="fa-solid fa-file-import"></i></button></div></div>
+    <div class="form-group stacked"><label>Description</label><textarea name="desc" rows="3"></textarea></div>
+  </form>`
+  const result = await DialogV2.prompt({
+    window: { title: 'Nouveau conteneur', icon: 'fa-solid fa-suitcase' },
+    content,
+    rejectClose: false,
+    ok: {
+      label: 'Créer',
+      icon: 'fa-solid fa-check',
+      callback: (event, button) => {
+        const f = button.form
+        return { name: f.elements.namedItem('name').value, img: f.elements.namedItem('img').value, desc: f.elements.namedItem('desc').value }
+      }
+    },
+    render: (event, dialog) => {
+      const root = dialog.element
+      const preset = root.querySelector('[name="preset"]'); const name = root.querySelector('[name="name"]'); const img = root.querySelector('[name="img"]')
+      let last = PRESETS[0]
+      preset.addEventListener('change', () => { if (!name.value || name.value === last) name.value = preset.value; last = preset.value })
+      root.querySelector('.cc-pick')?.addEventListener('click', () => {
+        new foundry.applications.apps.FilePicker.implementation({ type: 'image', current: img.value, callback: (path) => { img.value = path } }).render(true)
+      })
+    }
+  })
+  if (!result) return
+  const data = {
+    name: (result.name || 'Conteneur').trim(),
+    type: 'item',
+    img: result.img || 'icons/svg/item-bag.svg',
+    system: { description: { value: result.desc ? `<p>${esc(result.desc)}</p>` : '' } },
+    flags: { [ID]: { isContainer: true, contents: [] } }
+  }
+  try {
+    const doc = actor ? (await actor.createEmbeddedDocuments('Item', [data]))[0] : await Item.implementation.create(data)
+    ui.notifications.info(`Conteneur créé : ${doc.name}.`)
+  } catch (e) { console.error(ID, e); ui.notifications.error('Création impossible (voir la console F12).') }
+}
+
 class ContainerApp extends foundry.applications.api.ApplicationV2 {
   static DEFAULT_OPTIONS = {
     classes: ['coc7-conteneurs-app'],
@@ -155,6 +203,16 @@ function decorateActorSheet (app, root) {
     }, true)
   }
 
+  root.querySelectorAll('.cc-new-sheet').forEach((n) => n.remove())
+  const addBtn = root.querySelector('a[data-action="item-add"][data-type="item"]')
+  if (addBtn && actor.isOwner) {
+    const nb = document.createElement('a')
+    nb.className = 'item-control cc-new-sheet'; nb.dataset.tooltip = 'Nouveau conteneur'
+    nb.innerHTML = '<i class="fa-solid fa-suitcase"></i>'
+    nb.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); createContainer(actor) })
+    addBtn.before(nb)
+  }
+
   root.querySelectorAll('li.item[data-item-uuid]').forEach((li) => {
     const item = fromUuidSync(li.dataset.itemUuid, { strict: false })
     if (!item || item.type !== 'item') return
@@ -200,6 +258,21 @@ function decorateActorSheet (app, root) {
 
 Hooks.on('renderApplicationV2', (app, element) => {
   try { decorateActorSheet(app, element) } catch (e) { console.error(ID, e) }
+})
+Hooks.on('renderItemDirectory', (app, element) => {
+  try {
+    if (!game.user.isGM) return
+    const root = element instanceof HTMLElement ? element : element?.[0]
+    if (!root) return
+    root.querySelectorAll('.cc-new-dir').forEach((n) => n.remove())
+    const host = root.querySelector('.header-actions') ?? root.querySelector('.directory-header')
+    if (!host) return
+    const b = document.createElement('button')
+    b.type = 'button'; b.className = 'cc-new-dir'
+    b.innerHTML = '<i class="fa-solid fa-suitcase"></i> Nouveau conteneur'
+    b.addEventListener('click', () => createContainer())
+    host.append(b)
+  } catch (e) { console.error(ID, e) }
 })
 Hooks.on('updateItem', (item) => { OPEN.get(item.uuid)?.render() })
 Hooks.on('deleteItem', (item) => { OPEN.get(item.uuid)?.close() })

@@ -35,3 +35,6 @@
 /* ligne du conteneur dans la fiche */
 li.item.cc-container.cc-over { outline: 2px dashed #c9a24a; outline-offset: -2px; background: #c9a24a22; }
 li.item.cc-container .cc-ctrl { cursor: pointer; }
+
+.cc-new-dir { flex: 1 1 100%; margin-top: 4px; }
+.cc-new-sheet { cursor: pointer; margin-right: 4px; }

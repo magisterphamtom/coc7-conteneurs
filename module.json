@@ -2,7 +2,7 @@
   "id": "coc7-conteneurs",
   "title": "CoC7 Conteneurs",
   "description": "Fait de n'importe quel objet CoC7 un conteneur (sac, valise, sac à dos) : on glisse des objets dedans, on les ressort, le tout reste sur la fiche du personnage.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "authors": [{ "name": "magisterphamtom" }],
   "compatibility": { "minimum": "13", "verified": "14" },
   "relationships": { "systems": [{ "id": "CoC7", "type": "system", "compatibility": { "minimum": "8" } }] },
@@ -11,7 +11,7 @@
   "languages": [],
   "url": "https://github.com/magisterphamtom/coc7-conteneurs",
   "manifest": "https://github.com/magisterphamtom/coc7-conteneurs/releases/latest/download/module.json",
-  "download": "https://github.com/magisterphamtom/coc7-conteneurs/releases/download/v0.1.0/module.zip",
+  "download": "https://github.com/magisterphamtom/coc7-conteneurs/releases/download/v0.2.0/module.zip",
   "bugs": "https://github.com/magisterphamtom/coc7-conteneurs/issues",
   "readme": "https://github.com/magisterphamtom/coc7-conteneurs/blob/main/README.md",
   "license": "MIT"
