@@ -264,7 +264,7 @@ function decorateActorSheet (app, root) {
   }
 
   root.querySelectorAll('.cc-new-sheet').forEach((n) => n.remove())
-  const addBtn = (root.querySelector('.tab.possessions') ?? root).querySelector('a[data-action="item-add"][data-type="item"]')
+  const addBtn = root.querySelector('a[data-action="item-add"][data-type="item"]')
   if (addBtn && actor.isOwner) {
     const nb = document.createElement('a')
     nb.className = 'item-control cc-new-sheet'; nb.dataset.tooltip = 'Nouveau conteneur'
@@ -273,9 +273,7 @@ function decorateActorSheet (app, root) {
     addBtn.before(nb)
   }
 
-  // Seul l'onglet « Possessions » nous intéresse : inutile de parcourir les compétences, etc.
-  const possessions = root.querySelector('.tab.possessions') ?? root
-  possessions.querySelectorAll('li.item[data-item-uuid]').forEach((li) => {
+  root.querySelectorAll('li.item[data-item-uuid]').forEach((li) => {
     const item = fromUuidSync(li.dataset.itemUuid, { strict: false })
     if (!item || item.type !== 'item') return
     const controls = li.querySelector('.item-controls')

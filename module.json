@@ -2,7 +2,7 @@
   "id": "coc7-conteneurs",
   "title": "CoC7 Conteneurs",
   "description": "Fait de n'importe quel objet CoC7 un conteneur (sac, valise, sac à dos) : on glisse des objets dedans, on les ressort, le tout reste sur la fiche du personnage.",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "authors": [{ "name": "magisterphamtom" }],
   "compatibility": { "minimum": "13", "verified": "14" },
   "relationships": { "systems": [{ "id": "CoC7", "type": "system", "compatibility": { "minimum": "8" } }] },
