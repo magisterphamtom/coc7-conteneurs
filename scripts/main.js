@@ -206,7 +206,9 @@ class ContainerApp extends foundry.applications.api.ApplicationV2 {
         else if (a.dataset.cc === 'open') openContainer(this.item, [...this.path, entryId], this)
         else if (a.dataset.cc === 'view') {
           const entry = this.node.entries.find((e) => e.entryId === entryId)
-          new Item.implementation(foundry.utils.deepClone(entry.data)).sheet.render(true)
+          const d = entry.data
+          const html = `<div class="cc-view"><img src="${esc(d.img)}" alt="" style="float:left;width:96px;height:96px;object-fit:cover;margin:0 12px 6px 0;border-radius:6px">${d.system?.description?.value ?? ''}${game.user.isGM && d.system?.description?.keeper ? `<hr>${d.system.description.keeper}` : ''}</div>`
+          foundry.applications.api.DialogV2.prompt({ window: { title: d.name, icon: 'fa-solid fa-eye' }, content: html, ok: { label: 'Fermer', icon: 'fa-solid fa-check' }, position: { width: 460 }, rejectClose: false })
         }
       } catch (e) { console.error(ID, e); ui.notifications.error('Action impossible (voir la console F12).') }
     })
