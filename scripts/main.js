@@ -264,7 +264,7 @@ function decorateActorSheet (app, root) {
   }
 
   root.querySelectorAll('.cc-new-sheet').forEach((n) => n.remove())
-  const addBtn = root.querySelector('a[data-action="item-add"][data-type="item"]')
+  const addBtn = (root.querySelector('.tab.possessions') ?? root).querySelector('a[data-action="item-add"][data-type="item"]')
   if (addBtn && actor.isOwner) {
     const nb = document.createElement('a')
     nb.className = 'item-control cc-new-sheet'; nb.dataset.tooltip = 'Nouveau conteneur'
@@ -273,7 +273,9 @@ function decorateActorSheet (app, root) {
     addBtn.before(nb)
   }
 
-  root.querySelectorAll('li.item[data-item-uuid]').forEach((li) => {
+  // Seul l'onglet « Possessions » nous intéresse : inutile de parcourir les compétences, etc.
+  const possessions = root.querySelector('.tab.possessions') ?? root
+  possessions.querySelectorAll('li.item[data-item-uuid]').forEach((li) => {
     const item = fromUuidSync(li.dataset.itemUuid, { strict: false })
     if (!item || item.type !== 'item') return
     const controls = li.querySelector('.item-controls')
@@ -334,11 +336,17 @@ Hooks.on('renderItemDirectory', (app, element) => {
     host.append(b)
   } catch (e) { console.error(ID, e) }
 })
-Hooks.on('updateItem', (item) => {
-  for (const app of [...OPEN.values()]) {
-    if (app.item.uuid !== item.uuid) continue
-    if (app.node) app.render(); else app.close()
-  }
+// Rafraîchissement groupé : au plus un rendu par fenêtre et par image, et seulement si l'objet touché la concerne.
+const PENDING = new Set()
+Hooks.on('updateItem', (item, changes) => {
+  if (!OPEN.size) return
+  if (!changes || !(changes.flags || 'name' in changes || 'img' in changes || changes.system)) return
+  for (const app of OPEN.values()) if (app.item.uuid === item.uuid) PENDING.add(app)
+  if (!PENDING.size) return
+  requestAnimationFrame(() => {
+    const apps = [...PENDING]; PENDING.clear()
+    for (const app of apps) { try { if (app.node) app.render(); else app.close() } catch (e) { console.error(ID, e) } }
+  })
 })
-Hooks.on('deleteItem', (item) => { for (const app of [...OPEN.values()]) if (app.item.uuid === item.uuid) app.close() })
+Hooks.on('deleteItem', (item) => { if (!OPEN.size) return; for (const app of [...OPEN.values()]) if (app.item.uuid === item.uuid) app.close() })
 Hooks.once('ready', () => console.log(`${ID} | prêt`))
