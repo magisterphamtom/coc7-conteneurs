@@ -34,3 +34,8 @@ La fenêtre du conteneur suit le **thème choisi par chaque joueur** dans le mod
 Manifeste : `https://github.com/magisterphamtom/coc7-conteneurs/releases/latest/download/module.json`
 
 Licence MIT.
+
+
+## Investigateurs de l'Ombre (0.6.0)
+
+Le module fonctionne aussi avec le système Investigateurs de l'Ombre : les objets de type Équipement deviennent des conteneurs ; armes, tomes et sorts peuvent y être rangés. Les objets rangés sous CoC7 ressortent avec le bon type.

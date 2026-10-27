@@ -1,15 +1,23 @@
 /**
- * CoC7 Conteneurs : un objet CoC7 (type « item ») devient un conteneur.
+ * CoC7 Conteneurs : un objet CoC7 (type « item ») ou Investigateurs de l'Ombre (type « equipement ») devient un conteneur.
  * Données : flags.coc7-conteneurs.isContainer (booléen) et flags.coc7-conteneurs.contents
  * (liste de { entryId, data } où data est la copie de l'objet rangé). Rien n'est modifié dans CoC7 :
  * si le module est désactivé, le conteneur reste un objet ordinaire.
  */
 const ID = 'coc7-conteneurs'
-const ACCEPTED = ['item', 'book', 'weapon', 'spell', 'armor']
+/* Deux systèmes : CoC7 et Investigateurs de l'Ombre (types d'objets en français). */
+const IO = () => game.system.id === 'investigateurs-ombre'
+const TYPE_SAC = () => (IO() ? 'equipement' : 'item')
+const ACCEPTED_COC7 = ['item', 'book', 'weapon', 'spell', 'armor']
+const ACCEPTED_IO = ['equipement', 'tome', 'arme', 'sort']
+const COC7_VERS_IO = { item: 'equipement', book: 'tome', weapon: 'arme', spell: 'sort', armor: 'equipement' }
+const accepte = (type) => (IO() ? ACCEPTED_IO : ACCEPTED_COC7).includes(type)
+/** Une copie rangée sous CoC7 ressort avec un type valable dans Investigateurs de l'Ombre. */
+const typeSortie = (data) => { if (IO() && COC7_VERS_IO[data.type]) data.type = COC7_VERS_IO[data.type]; return data }
 const OPEN = new Map()
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
-const isContainer = (item) => item?.type === 'item' && item.getFlag(ID, 'isContainer') === true
+const isContainer = (item) => item?.type === TYPE_SAC() && item.getFlag(ID, 'isContainer') === true
 const getContents = (item) => { const c = item.getFlag(ID, 'contents'); return Array.isArray(c) ? c : [] }
 const setContents = (item, arr) => item.setFlag(ID, 'contents', arr)
 const t = (key, data) => (data ? game.i18n.format(`CC.${key}`, data) : game.i18n.localize(`CC.${key}`))
@@ -71,7 +79,7 @@ async function mutate (root, path, fn) {
 /** Range un objet (copie) dans le conteneur désigné ; l'original est supprimé s'il appartient à un acteur. */
 async function storeItem (root, path, source) {
   if (source.uuid === root.uuid) { ui.notifications.warn(t('warn.self')); return }
-  if (!ACCEPTED.includes(source.type)) { ui.notifications.warn(t('warn.type')); return }
+  if (!accepte(source.type)) { ui.notifications.warn(t('warn.type')); return }
   const data = source.toObject()
   delete data._id; delete data.folder; delete data.ownership; delete data.sort
   const fit = fits(root, path, entryWeight(data))
@@ -84,7 +92,7 @@ async function storeItem (root, path, source) {
 async function takeOut (root, path, entryId, targetActor = null) {
   const node = getNode(root, path); if (!node) return
   const entry = node.entries.find((e) => e.entryId === entryId); if (!entry) return
-  const data = foundry.utils.deepClone(entry.data)
+  const data = typeSortie(foundry.utils.deepClone(entry.data))
   const actor = targetActor ?? root.parent
   if (actor) await actor.createEmbeddedDocuments('Item', [data])
   else await Item.implementation.create(data)
@@ -159,7 +167,7 @@ async function createContainer (actor = null) {
   if (!result) return
   const data = {
     name: (result.name || t('defaultName')).trim(),
-    type: 'item',
+    type: TYPE_SAC(),
     img: result.img || 'icons/svg/item-bag.svg',
     system: { description: { value: result.desc ? `<p>${esc(result.desc)}</p>` : '' } },
     flags: { [ID]: { isContainer: true, contents: [] } }
@@ -324,6 +332,7 @@ function decorateActorSheet (app, root) {
     }, true)
   }
 
+  if (IO()) return decorerFicheIO(actor, root)
   root.querySelectorAll('.cc-new-sheet').forEach((n) => n.remove())
   const addBtn = root.querySelector('a[data-action="item-add"][data-type="item"]')
   if (addBtn && actor.isOwner) {
@@ -373,6 +382,59 @@ function decorateActorSheet (app, root) {
       })
     } else if (game.user.isGM) {
       controls.prepend(make('make', 'fa-regular fa-suitcase', t('make')))
+    }
+  })
+}
+
+/** Fiches Investigateurs de l'Ombre : lignes .io-objet[data-item-id] de l'inventaire. */
+function decorerFicheIO (actor, root) {
+  root.querySelectorAll('.cc-new-sheet').forEach((n) => n.remove())
+  const addBtn = root.querySelector('a.io-ajout[data-action="objetCreer"][data-type="equipement"]')
+  if (addBtn && actor.isOwner) {
+    const nb = document.createElement('a')
+    nb.className = 'io-ajout cc-new-sheet'; nb.dataset.tooltip = t('new')
+    nb.innerHTML = '<i class="fa-solid fa-suitcase"></i>'
+    nb.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); createContainer(actor) })
+    addBtn.before(nb)
+  }
+  root.querySelectorAll('.io-objet[data-item-id]').forEach((li) => {
+    const item = actor.items.get(li.dataset.itemId)
+    if (!item || item.type !== TYPE_SAC()) return
+    li.querySelectorAll('.cc-ctrl').forEach((n) => n.remove())
+    const ancre = li.querySelector('[data-action="objetChat"]') ?? li.querySelector('.io-pastille')
+    const ajouter = (a) => (ancre ? ancre.before(a) : li.append(a))
+    const make = (cc, icon, tip) => {
+      const a = document.createElement('a')
+      a.className = 'io-pastille cc-ctrl'; a.dataset.tooltip = tip
+      a.innerHTML = `<i class="${icon}"></i>`
+      a.addEventListener('click', async (ev) => {
+        ev.preventDefault(); ev.stopPropagation()
+        try {
+          if (cc === 'open') openContainer(item)
+          else if (cc === 'make') await item.update({ [`flags.${ID}.isContainer`]: true, [`flags.${ID}.contents`]: getContents(item) })
+          else if (cc === 'unmake') {
+            if (getContents(item).length) ui.notifications.warn(t('warn.emptyFirst'))
+            else await item.unsetFlag(ID, 'isContainer')
+          }
+        } catch (e) { console.error(ID, e); ui.notifications.error(t('err.action')) }
+      })
+      return a
+    }
+    if (isContainer(item)) {
+      li.classList.add('cc-container')
+      const n = getContents(item).length
+      if (game.user.isGM) ajouter(make('unmake', 'fa-solid fa-ban', t('unmake')))
+      ajouter(make('open', 'fa-solid fa-suitcase', t('open', { count: countLabel(n) })))
+      li.addEventListener('dragover', (ev) => { ev.preventDefault(); li.classList.add('cc-over') })
+      li.addEventListener('dragleave', () => li.classList.remove('cc-over'))
+      li.addEventListener('drop', async (ev) => {
+        let d; try { d = JSON.parse(ev.dataTransfer.getData('text/plain')) } catch (e) { return }
+        if (d?.type !== 'Item' && d?.type !== `${ID}-entry`) return
+        ev.preventDefault(); ev.stopPropagation(); li.classList.remove('cc-over')
+        await dropOnContainer(ev, item, [])
+      })
+    } else if (game.user.isGM) {
+      ajouter(make('make', 'fa-regular fa-suitcase', t('make')))
     }
   })
 }

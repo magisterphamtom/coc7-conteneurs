@@ -75,3 +75,8 @@ li.item.cc-container .cc-ctrl { cursor: pointer; }
 .coc7-conteneurs-app .cc-bar > span { display: block; height: 100%; background: var(--cc-accent); transition: width .25s; }
 .coc7-conteneurs-app .cc-gauge.cc-over .cc-bar > span { background: #c0392b; }
 .coc7-conteneurs-app .cc-gauge.cc-over .cc-gauge-txt { color: #c0392b; }
+
+/* Investigateurs de l'Ombre */
+.io-objet.cc-container.cc-over { outline: 2px dashed var(--io-accent, #c9a24a); outline-offset: -2px; background: color-mix(in srgb, var(--io-accent, #c9a24a) 14%, transparent); }
+.io-objet.cc-container .cc-ctrl { cursor: pointer; }
+.io-objet.cc-container > img { box-shadow: 0 0 0 2px var(--io-accent, #c9a24a); }

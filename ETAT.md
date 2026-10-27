@@ -15,3 +15,9 @@
 - Poids et capacité : poids × quantité des objets rangés (imbriqués compris), capacité réglable par le MJ (clic sur la jauge), dépassement refusé pour le conteneur et tous ses parents.
 - Testé en Chromium avec Foundry simulé (rangement, dépassement, imbriqué, FR/EN) ; **non testé dans Foundry**.
 - `module.json` : langues, description bilingue ; le zip de release contient `lang/`. Texte de la fiche foundryvtt.com : `docs/fiche-foundryvtt-com.md`.
+
+## v0.6.0 — Investigateurs de l'Ombre
+- Le module accepte aussi le système `investigateurs-ombre` (relationships.systems) : conteneur = objet `equipement` ; armes, tomes, sorts et équipement rangeables.
+- Fiches Investigateurs de l'Ombre : boutons sur les lignes `.io-objet[data-item-id]` de l'inventaire, valise à côté du « + » de l'équipement, dépôt sur la ligne.
+- Les objets rangés sous CoC7 ressortent avec le type du nouveau système (item → equipement, book → tome, weapon → arme, spell → sort).
+- Testé et validé par Stéphane dans Foundry (monde « Par-delà les Montagnes Hallucinées » migré).
