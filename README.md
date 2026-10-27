@@ -11,6 +11,9 @@ Module Foundry VTT (v13/v14) pour le système Call of Cthulhu 7e (CoC7) : fait d
 3. Cliquer sur l'icône valise pour **ouvrir** le conteneur : on y voit son contenu, on peut y glisser d'autres objets, cliquer sur la flèche pour **sortir** un objet, ou le glisser vers la fiche.
 4. Le MJ peut détruire un objet du conteneur ou retirer le statut de conteneur (quand il est vide).
 
+## Poids et capacité
+Chaque objet rangé compte pour son **poids × sa quantité** (champs « poids » et « quantité » de l'objet CoC7). La fenêtre affiche le total contenu, sans oublier ce que contiennent les conteneurs imbriqués. Le MJ clique sur la jauge pour régler la **capacité maximale** (0 = illimitée) : un objet qui la ferait dépasser est refusé, et la capacité de chaque conteneur parent est respectée aussi.
+
 ## Poupées russes
 Un conteneur peut en contenir d'autres, sans limite de niveaux : glisse un conteneur dans un autre (ex. un coffret de maquillage dans un sac à main). Sa tuile porte un badge doré avec le nombre d'objets qu'il contient ; un clic sur son nom l'ouvre dans une seconde fenêtre. On peut aussi glisser un objet directement sur la tuile du conteneur pour le ranger dedans, et déplacer un objet d'un conteneur à un autre.
 
@@ -23,6 +26,9 @@ La fenêtre du conteneur suit le **thème choisi par chaque joueur** dans le mod
 - Aucune modification de CoC7 : le contenu est enregistré dans les données de l'objet. Module désactivé, le conteneur reste un objet normal.
 - Supprimer un conteneur supprime aussi son contenu.
 - Types acceptés dans un conteneur : objet, livre, sort, arme, armure.
+
+## English
+**CoC7 Containers** turns any Call of Cthulhu 7th edition item into a container (handbag, backpack, suitcase…). Drag items onto the container's row on the character sheet, open it to see its contents in a themed window, drag items out again. Containers nest like Russian dolls, each can have a weight capacity (set by the GM by clicking the gauge), and the window follows the theme each player picked in *CoC7 – Themed Chat Cards* (optional). Nothing in the CoC7 system is modified: contents are stored in the item's flags, so if the module is disabled the container is just an ordinary item. UI available in English and French. Requires the CoC7 system (8.x), Foundry v13 or v14 (tested on v14).
 
 ## Installation
 Manifeste : `https://github.com/magisterphamtom/coc7-conteneurs/releases/latest/download/module.json`

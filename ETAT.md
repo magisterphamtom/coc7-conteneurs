@@ -9,3 +9,9 @@
 - (annulé en 0.4.2) limiter le décor à `.tab.possessions` faisait disparaître la valise sur certaines fiches ; on parcourt de nouveau toute la fiche (coût négligeable).
 - Filtre des autres fenêtres : < 0,1 µs par rendu.
 - `updateItem` : ignoré si aucune fenêtre ouverte ou si le changement ne touche ni flags, ni nom, ni image ; rendus groupés (un par image).
+
+## v0.5.0 — préparation publication
+- Interface en français et en anglais (`lang/fr.json`, `lang/en.json`, clés `CC.*`).
+- Poids et capacité : poids × quantité des objets rangés (imbriqués compris), capacité réglable par le MJ (clic sur la jauge), dépassement refusé pour le conteneur et tous ses parents.
+- Testé en Chromium avec Foundry simulé (rangement, dépassement, imbriqué, FR/EN) ; **non testé dans Foundry**.
+- `module.json` : langues, description bilingue ; le zip de release contient `lang/`. Texte de la fiche foundryvtt.com : `docs/fiche-foundryvtt-com.md`.
