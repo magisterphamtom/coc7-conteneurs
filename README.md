@@ -12,6 +12,9 @@ Module Foundry VTT (v13/v14) pour le système Call of Cthulhu 7e (CoC7) : fait d
 ## Poupées russes
 Un conteneur peut en contenir d'autres, sans limite de niveaux : glisse un conteneur dans un autre (ex. un coffret de maquillage dans un sac à main). Sa tuile porte un badge doré avec le nombre d'objets qu'il contient ; un clic sur son nom l'ouvre dans une seconde fenêtre. On peut aussi glisser un objet directement sur la tuile du conteneur pour le ranger dedans, et déplacer un objet d'un conteneur à un autre.
 
+## Thème
+La fenêtre du conteneur suit le **thème choisi par chaque joueur** dans le module « CoC7 – Cartes de chat thématiques » (Années 20, New York années 20, Montagnes Hallucinées, New York 2026, Antarctique 2026) : couleurs, polices et arrondis. Chacun voit donc la fenêtre à son thème, et la bascule d'époque la change toute seule. Sans ce module, ou avec le thème « Aucun », la fenêtre garde son style par défaut (cuir sombre et filets dorés).
+
 ## Notes
 - Aucune modification de CoC7 : le contenu est enregistré dans les données de l'objet. Module désactivé, le conteneur reste un objet normal.
 - Supprimer un conteneur supprime aussi son contenu.
