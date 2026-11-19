@@ -21,3 +21,6 @@
 - Fiches Investigateurs de l'Ombre : boutons sur les lignes `.io-objet[data-item-id]` de l'inventaire, valise à côté du « + » de l'équipement, dépôt sur la ligne.
 - Les objets rangés sous CoC7 ressortent avec le type du nouveau système (item → equipement, book → tome, weapon → arme, spell → sort).
 - Testé et validé par Stéphane dans Foundry (monde « Par-delà les Montagnes Hallucinées » migré).
+
+## v0.6.1 — correctif CoC7 9.2
+- CoC7 9.2 masque tout `.item-control` sans `data-action` (hauteur 0, clics ignorés) : les boutons valise du module étaient dans la page mais invisibles. Règle CSS ajoutée en fin de `styles/style.css`. Vérifié dans Foundry 14.368 + CoC7 9.2 (fiche v3).

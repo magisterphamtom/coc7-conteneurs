@@ -80,3 +80,9 @@ li.item.cc-container .cc-ctrl { cursor: pointer; }
 .io-objet.cc-container.cc-over { outline: 2px dashed var(--io-accent, #c9a24a); outline-offset: -2px; background: color-mix(in srgb, var(--io-accent, #c9a24a) 14%, transparent); }
 .io-objet.cc-container .cc-ctrl { cursor: pointer; }
 .io-objet.cc-container > img { box-shadow: 0 0 0 2px var(--io-accent, #c9a24a); }
+
+
+/* CoC7 9.2 masque tout « .item-control » sans data-action (hauteur 0, clics ignorés) : on rend les boutons du module visibles et cliquables. */
+body .item-control.cc-ctrl:not([data-action]) {
+  height: auto; min-height: 0; overflow: visible; pointer-events: auto; cursor: pointer;
+}
