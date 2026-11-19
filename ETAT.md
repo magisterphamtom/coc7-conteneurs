@@ -24,3 +24,7 @@
 
 ## v0.6.1 — correctif CoC7 9.2
 - CoC7 9.2 masque tout `.item-control` sans `data-action` (hauteur 0, clics ignorés) : les boutons valise du module (ouvrir un conteneur, « nouveau conteneur » à côté du « + ») étaient dans la page mais invisibles. Règle CSS ajoutée en fin de `styles/style.css`. Vérifié dans Foundry 14.368 + CoC7 9.2 (fiche v3).
+
+## v0.6.2 — icônes visibles
+- Boutons de l'en-tête des fenêtres de conteneur (menu ⋮, fermer ✕) invisibles : le style imposait la police du titre à ces boutons, qui sont eux-mêmes des icônes Font Awesome. Police du titre limitée au titre. Vérifié dans Foundry 14.368 + CoC7 9.2.
+- Flèche « sortir » et corbeille des objets : fond crème, icône brun foncé, **toujours visibles** (avant : seulement au survol).

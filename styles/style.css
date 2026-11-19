@@ -24,9 +24,10 @@ body.c7cc-ny2026 .application.coc7-conteneurs-app { --cc-radius: 12px; }
 body.c7cc-antarctique2026 .application.coc7-conteneurs-app { --cc-radius: 8px; }
 
 .coc7-conteneurs-app .window-header { background: transparent; border: 0; border-bottom: 1px solid var(--cc-border); color: var(--cc-accent); }
-.coc7-conteneurs-app .window-header .window-title,
-.coc7-conteneurs-app .window-header button,
-.coc7-conteneurs-app .window-header i { color: var(--cc-accent); font-family: var(--cc-font-title); }
+.coc7-conteneurs-app .window-header .window-title { color: var(--cc-accent); font-family: var(--cc-font-title); }
+/* Les boutons de l'en-tête (fermer, menu…) SONT des icônes Font Awesome : ne surtout pas leur imposer la police du titre, sinon ils deviennent invisibles. */
+.coc7-conteneurs-app .window-header button { color: var(--cc-accent); }
+.coc7-conteneurs-app .window-header i { color: var(--cc-accent); }
 .coc7-conteneurs-app .window-content { padding: 0; background: transparent; overflow: hidden; color: var(--cc-ink); }
 .coc7-conteneurs-app .cc-wrap { display: flex; flex-direction: column; height: 100%; padding: 10px 12px 8px; gap: 8px; color: var(--cc-ink); }
 .coc7-conteneurs-app .cc-head { display: flex; align-items: center; gap: 12px; padding-bottom: 8px; border-bottom: 1px double var(--cc-border); }
@@ -45,9 +46,9 @@ body.c7cc-antarctique2026 .application.coc7-conteneurs-app { --cc-radius: 8px; }
 .coc7-conteneurs-app .cc-qty { left: 3px; }
 .coc7-conteneurs-app .cc-nest { right: 3px; font-size: 11px; }
 .coc7-conteneurs-app .cc-tile.cc-box .cc-frame { border-color: var(--cc-accent); box-shadow: 0 0 0 1px #000, 0 2px 8px color-mix(in srgb, var(--cc-accent) 40%, transparent); }
-.coc7-conteneurs-app .cc-actions { position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: flex-end; gap: 3px; padding: 3px; background: linear-gradient(#000a, transparent 55%); opacity: 0; transition: opacity .12s; }
-.coc7-conteneurs-app .cc-tile:hover .cc-actions { opacity: 1; }
-.coc7-conteneurs-app .cc-btn { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--c7cc-button-bg, #1b120ce0); color: var(--c7cc-button-ink, var(--cc-accent)); font-size: 12px; cursor: pointer; border: 1px solid var(--c7cc-button-border, var(--cc-border)); }
+.coc7-conteneurs-app .cc-actions { position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: flex-end; gap: 3px; padding: 3px; background: linear-gradient(#0008, transparent 45%); opacity: 1; pointer-events: none; }
+.coc7-conteneurs-app .cc-actions .cc-btn { pointer-events: auto; }
+.coc7-conteneurs-app .cc-btn { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #f4ecd9; color: #2b1d0e; font-size: 13px; cursor: pointer; border: 1px solid var(--cc-accent); box-shadow: 0 1px 4px #0009; }
 .coc7-conteneurs-app .cc-btn:hover { background: var(--cc-accent); color: #1b120c; color: oklch(from var(--cc-accent) clamp(0.15, calc((0.66 - l) * 1000), 0.98) 0 0); }
 .coc7-conteneurs-app .cc-btn.cc-danger:hover { background: #8B1E1E; color: #fff; border-color: #8B1E1E; }
 .coc7-conteneurs-app .cc-name { max-width: 92px; text-align: center; font-size: 12px; line-height: 1.2; color: var(--cc-ink); cursor: pointer; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
