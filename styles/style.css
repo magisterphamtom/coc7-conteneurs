@@ -83,6 +83,7 @@ li.item.cc-container .cc-ctrl { cursor: pointer; }
 
 
 /* CoC7 9.2 masque tout « .item-control » sans data-action (hauteur 0, clics ignorés) : on rend les boutons du module visibles et cliquables. */
-body .item-control.cc-ctrl:not([data-action]) {
+body .item-control.cc-ctrl:not([data-action]),
+body .item-control.cc-new-sheet:not([data-action]) {
   height: auto; min-height: 0; overflow: visible; pointer-events: auto; cursor: pointer;
 }
