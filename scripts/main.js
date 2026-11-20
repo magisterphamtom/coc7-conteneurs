@@ -338,7 +338,12 @@ class ContainerApp extends foundry.applications.api.ApplicationV2 {
       const entryId = row.dataset.entryId
       try {
         if (a.dataset.cc === 'take') await takeOut(this.item, this.path, entryId)
-        else if (a.dataset.cc === 'remove') await mutate(this.item, this.path, (list) => { list.splice(list.findIndex((e) => e.entryId === entryId), 1) })
+        else if (a.dataset.cc === 'remove') {
+          const inner = (getNode(this.item, this.path)?.entries ?? []).find((e) => e.entryId === entryId)
+          const n = deepCount(inner?.data?.flags?.[ID]?.contents)
+          if (n && !(await confirmDestroy(inner.data?.name ?? '', n))) return
+          await mutate(this.item, this.path, (list) => { list.splice(list.findIndex((e) => e.entryId === entryId), 1) })
+        }
         else if (a.dataset.cc === 'open') openContainer(this.item, [...this.path, entryId], this)
         else if (a.dataset.cc === 'view') {
           const entry = this.node.entries.find((e) => e.entryId === entryId)
@@ -571,6 +576,27 @@ Hooks.on('updateItem', (item, changes) => {
     const apps = [...PENDING]; PENDING.clear()
     for (const app of apps) { try { if (app.node) app.render(); else app.close() } catch (e) { console.error(ID, e) } }
   })
+})
+/** Nombre d'objets rangés dans un conteneur, sous-conteneurs compris. */
+function deepCount (entries) {
+  return (Array.isArray(entries) ? entries : []).reduce((a, e) => a + 1 + deepCount(e.data?.flags?.[ID]?.contents), 0)
+}
+/** Demande confirmation avant de détruire un conteneur qui n'est pas vide. */
+async function confirmDestroy (name, count) {
+  return foundry.applications.api.DialogV2.confirm({
+    window: { title: t('confirm.title'), icon: 'fa-solid fa-triangle-exclamation' },
+    content: `<p>${t('confirm.body', { name: esc(name), count: countLabel(count) })}</p>`,
+    yes: { label: t('confirm.yes'), icon: 'fa-solid fa-trash' },
+    no: { label: t('confirm.no'), icon: 'fa-solid fa-xmark', default: true },
+    rejectClose: false
+  })
+}
+Hooks.on('preDeleteItem', (item, options, userId) => {
+  if (userId !== game.user.id || options?.ccConfirmed || !isContainer(item)) return
+  const n = deepCount(getContents(item))
+  if (!n) return
+  confirmDestroy(item.name, n).then((ok) => { if (ok) item.delete({ ...options, ccConfirmed: true }) }).catch((e) => console.error(ID, e))
+  return false
 })
 Hooks.on('deleteItem', (item) => { if (!OPEN.size) return; for (const app of [...OPEN.values()]) if (app.item.uuid === item.uuid) app.close() })
 Hooks.once('ready', () => console.log(`${ID} | ready`))

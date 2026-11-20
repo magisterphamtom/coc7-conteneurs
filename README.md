@@ -32,7 +32,7 @@ La fenêtre du conteneur suit le **thème choisi par chaque joueur** dans le mod
 ## Notes
 - **Compatible CoC7 9.2** (v0.6.1) : la mise à jour du système masquait les boutons du module ; c'est corrigé. Les boutons apparaissent sur la fiche d'investigateur standard (v2 et v3).
 - Aucune modification de CoC7 : le contenu est enregistré dans les données de l'objet. Module désactivé, le conteneur reste un objet normal.
-- Supprimer un conteneur supprime aussi son contenu.
+- Supprimer un conteneur supprime aussi son contenu : une confirmation est demandée s'il n'est pas vide.
 - Types acceptés dans un conteneur : objet, livre, sort, arme, armure.
 
 ## English

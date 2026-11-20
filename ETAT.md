@@ -36,5 +36,5 @@
 - Liste d'équipement : pastille avec le nombre d'objets sur la valise et « (n) » à côté du nom (idée d'un utilisateur). Un conteneur vide n'affiche rien. Sur les fiches Investigateurs de l'Ombre : pastille seulement.
 - Piège vu en test : un fichier CSS/JS copié sur le PC peut ne pas être remplacé (ancien contenu servi) — toujours revérifier la taille du fichier installé.
 - Testé et validé par Stéphane dans Foundry (monde 1933).
-- À faire : confirmation avant suppression d'un conteneur non vide.
+- Confirmation avant suppression d'un conteneur non vide (fiche et corbeille de la fenêtre).
 

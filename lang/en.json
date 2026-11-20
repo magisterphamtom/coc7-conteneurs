@@ -60,5 +60,9 @@
   "CC.theme.newyork": "1920s New York",
   "CC.theme.montagnes": "At the Mountains of Madness",
   "CC.theme.ny2026": "New York 2026",
-  "CC.theme.antarctique2026": "Antarctica 2026"
+  "CC.theme.antarctique2026": "Antarctica 2026",
+  "CC.confirm.title": "Delete container?",
+  "CC.confirm.body": "\"{name}\" is not empty: it holds {count} (nested containers included). Deleting it also deletes everything inside. To keep the items, take them out first.",
+  "CC.confirm.yes": "Delete anyway",
+  "CC.confirm.no": "Cancel"
 }

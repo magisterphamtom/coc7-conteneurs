@@ -60,5 +60,9 @@
   "CC.theme.newyork": "New York années 20",
   "CC.theme.montagnes": "Par-delà les Montagnes Hallucinées",
   "CC.theme.ny2026": "New York 2026",
-  "CC.theme.antarctique2026": "Antarctique 2026"
+  "CC.theme.antarctique2026": "Antarctique 2026",
+  "CC.confirm.title": "Supprimer le conteneur ?",
+  "CC.confirm.body": "« {name} » n'est pas vide : il contient {count} (sous-conteneurs compris). Si tu le supprimes, tout son contenu disparaît avec lui. Pour garder les objets, sors-les d'abord.",
+  "CC.confirm.yes": "Supprimer quand même",
+  "CC.confirm.no": "Annuler"
 }
