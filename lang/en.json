@@ -47,5 +47,18 @@
   "CC.err.create": "Creation failed (see the F12 console).",
   "CC.err.action": "Action failed (see the F12 console).",
   "CC.err.take": "Could not take this item out (see the F12 console).",
-  "CC.weightLine": "Weight: {used} / {cap}"
+  "CC.weightLine": "Weight: {used} / {cap}",
+  "CC.settings.look.name": "Container window look",
+  "CC.settings.look.hint": "Your own choice; each player sets theirs. Chat card style is the module's original look (dark leather, gold rules). Base CoC7 sheet follows the standard investigator sheet: beige paper, green header, red titles. Themed sheet follows the Themed Sheets module.",
+  "CC.settings.theme.name": "Container window theme",
+  "CC.settings.theme.hint": "Automatic: follows your chat card theme. Otherwise forces a theme for this window (no effect with the base CoC7 sheet).",
+  "CC.look.chat": "Chat card style (original)",
+  "CC.look.fiche": "Themed sheet (Themed Sheets module)",
+  "CC.look.coc7": "Base CoC7 sheet (beige, green header)",
+  "CC.theme.auto": "Automatic (like chat cards)",
+  "CC.theme.annees20": "1920s (black and gold Art Deco)",
+  "CC.theme.newyork": "1920s New York",
+  "CC.theme.montagnes": "At the Mountains of Madness",
+  "CC.theme.ny2026": "New York 2026",
+  "CC.theme.antarctique2026": "Antarctica 2026"
 }

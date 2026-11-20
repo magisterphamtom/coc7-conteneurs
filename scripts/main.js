@@ -178,6 +178,73 @@ async function createContainer (actor = null) {
   } catch (e) { console.error(ID, e); ui.notifications.error(t('err.create')) }
 }
 
+
+/* ---------- Apparence de la fenêtre (réglages de chaque joueur) ---------- */
+const THEME_KEYS = ['annees20', 'newyork', 'montagnes', 'ny2026', 'antarctique2026']
+const LOOKS = ['chat', 'fiche', 'coc7']
+const VARS = new Map()
+
+/** Thème des cartes de chat du joueur (module « Cartes de chat thématiques »), ou null s'il est absent / sur « Aucun ». */
+function chatThemeKey () {
+  try {
+    const t = game.settings.get('coc7-cartes-chat', 'forceTheme') || game.settings.get('coc7-cartes-chat', 'theme')
+    return THEME_KEYS.includes(t) ? t : null
+  } catch (e) { return null }
+}
+/** Thème retenu pour la fenêtre : celui du réglage, ou celui des cartes de chat en « Automatique ». */
+function themeKey () {
+  let s = 'auto'
+  try { s = game.settings.get(ID, 'theme') } catch (e) { /* réglage pas encore enregistré */ }
+  return THEME_KEYS.includes(s) ? s : chatThemeKey()
+}
+/** Relit dans les feuilles de style déjà chargées les variables d'un thème : --ft-* (fiche du personnage) ou --c7cc-* (cartes de chat). */
+function collectVars (kind, theme) {
+  const k = `${kind}|${theme}`
+  if (VARS.has(k)) return VARS.get(k)
+  const prefix = kind === 'fiche' ? '--ft-' : '--c7cc-'
+  const re = kind === 'fiche' ? new RegExp(`\\.c7ft-${theme}\\s*$`) : new RegExp(`^body\\.c7cc-${theme}\\s*$`)
+  const out = {}
+  const walk = (rules) => {
+    for (const rule of rules) {
+      if (rule.selectorText === undefined) { if (rule.cssRules) walk(rule.cssRules); continue }
+      if (!rule.style || !rule.selectorText.split(',').some((sel) => re.test(sel.trim()))) continue
+      const base = rule.parentStyleSheet?.href || document.baseURI
+      for (const name of rule.style) {
+        if (!name.startsWith(prefix)) continue
+        // les url() relatives (textures) doivent rester valables une fois recopiées dans la fenêtre
+        out[name] = rule.style.getPropertyValue(name).replace(/url\(\s*(['"]?)(?!data:|https?:|\/|#)([^'")]+)\1\s*\)/g, (m, q, u) => { try { return `url(${q}${new URL(u, base).href}${q})` } catch (e) { return m } })
+      }
+    }
+  }
+  for (const sheet of document.styleSheets) { try { walk(sheet.cssRules) } catch (e) { /* feuille d'un autre site */ } }
+  if (Object.keys(out).length) VARS.set(k, out)
+  return out
+}
+
+Hooks.once('init', () => {
+  const refresh = () => { for (const app of OPEN.values()) { try { app.applyLook() } catch (e) { console.error(ID, e) } } }
+  game.settings.register(ID, 'look', {
+    name: 'CC.settings.look.name',
+    hint: 'CC.settings.look.hint',
+    scope: 'client',
+    config: true,
+    type: String,
+    choices: { chat: 'CC.look.chat', fiche: 'CC.look.fiche', coc7: 'CC.look.coc7' },
+    default: 'chat',
+    onChange: refresh
+  })
+  game.settings.register(ID, 'theme', {
+    name: 'CC.settings.theme.name',
+    hint: 'CC.settings.theme.hint',
+    scope: 'client',
+    config: true,
+    type: String,
+    choices: { auto: 'CC.theme.auto', ...Object.fromEntries(THEME_KEYS.map((k) => [k, `CC.theme.${k}`])) },
+    default: 'auto',
+    onChange: refresh
+  })
+})
+
 class ContainerApp extends foundry.applications.api.ApplicationV2 {
   static DEFAULT_OPTIONS = {
     classes: ['coc7-conteneurs-app'],
@@ -300,6 +367,32 @@ class ContainerApp extends foundry.applications.api.ApplicationV2 {
     })
   }
 
+  /** Pose l'apparence choisie par le joueur : classe cc-look-… et variables du thème sur la fenêtre. */
+  applyLook () {
+    const el = this.element; if (!el) return
+    let look = 'chat'
+    try { look = game.settings.get(ID, 'look') } catch (e) { /* réglage absent */ }
+    if (!LOOKS.includes(look)) look = 'chat'
+    for (const l of LOOKS) el.classList.toggle(`cc-look-${l}`, l === look)
+    for (const name of this._ccProps ?? []) el.style.removeProperty(name)
+    this._ccProps = []
+    const key = themeKey()
+    if (look === 'coc7' || !key) return
+    if (look === 'chat' && key === chatThemeKey()) return   // même thème que le chat : la fenêtre en hérite déjà, rien à recopier
+    for (const [name, value] of Object.entries(collectVars(look === 'fiche' ? 'fiche' : 'chat', key))) {
+      if (name === '--ft-band' || name === '--ft-foot') continue   // images relatives au module des fiches : inutiles ici
+      el.style.setProperty(name, value); this._ccProps.push(name)
+    }
+  }
+
+  async _onRender (context, options) {
+    await super._onRender?.(context, options)
+    try { this.applyLook() } catch (e) {
+      console.error(ID, 'applyLook', e)
+      ui.notifications.error(t('err.action'))
+    }
+  }
+
   async close (options) { OPEN.delete(this.key); return super.close(options) }
 }
 
@@ -370,7 +463,15 @@ function decorateActorSheet (app, root) {
       li.classList.add('cc-container')
       const n = getContents(item).length
       const open = make('open', 'fa-solid fa-suitcase', t('open', { count: countLabel(n) }))
+      if (n) open.dataset.ccCount = String(n)
       controls.prepend(open)
+      li.querySelectorAll('.cc-count').forEach((x) => x.remove())
+      const nom = li.querySelector('.item-name')
+      if (nom && n) {
+        const b = document.createElement('span')
+        b.className = 'cc-count'; b.textContent = `(${n})`; b.dataset.tooltip = countLabel(n)
+        nom.append(' ', b)
+      }
       if (game.user.isGM) controls.prepend(make('unmake', 'fa-solid fa-ban', t('unmake')))
       li.addEventListener('dragover', (ev) => { ev.preventDefault(); li.classList.add('cc-over') })
       li.addEventListener('dragleave', () => li.classList.remove('cc-over'))
@@ -424,7 +525,9 @@ function decorerFicheIO (actor, root) {
       li.classList.add('cc-container')
       const n = getContents(item).length
       if (game.user.isGM) ajouter(make('unmake', 'fa-solid fa-ban', t('unmake')))
-      ajouter(make('open', 'fa-solid fa-suitcase', t('open', { count: countLabel(n) })))
+      const ouvrir = make('open', 'fa-solid fa-suitcase', t('open', { count: countLabel(n) }))
+      if (n) ouvrir.dataset.ccCount = String(n)
+      ajouter(ouvrir)
       li.addEventListener('dragover', (ev) => { ev.preventDefault(); li.classList.add('cc-over') })
       li.addEventListener('dragleave', () => li.classList.remove('cc-over'))
       li.addEventListener('drop', async (ev) => {

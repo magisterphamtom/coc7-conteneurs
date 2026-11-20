@@ -47,5 +47,18 @@
   "CC.err.create": "Création impossible (voir la console F12).",
   "CC.err.action": "Action impossible (voir la console F12).",
   "CC.err.take": "Impossible de sortir cet objet (voir la console F12).",
-  "CC.weightLine": "Poids : {used} / {cap}"
+  "CC.weightLine": "Poids : {used} / {cap}",
+  "CC.settings.look.name": "Apparence de la fenêtre du conteneur",
+  "CC.settings.look.hint": "Ton choix à toi, chaque joueur règle le sien. Le style des cartes de chat est celui d'origine du module (cuir sombre et filets dorés). La fiche CoC7 de base reprend la fiche d'investigateur standard : papier beige, bandeau vert, titres rouges. La fiche thématique reprend le module « Fiches thématiques » (sombre, aux couleurs du thème).",
+  "CC.settings.theme.name": "Thème de la fenêtre du conteneur",
+  "CC.settings.theme.hint": "Automatique : suit le thème de tes cartes de chat. Sinon, force un thème pour cette fenêtre (sans effet avec « Fiche CoC7 de base »).",
+  "CC.look.chat": "Style des cartes de chat (d'origine)",
+  "CC.look.fiche": "Fiche thématique (module Fiches thématiques)",
+  "CC.look.coc7": "Fiche CoC7 de base (beige, bandeau vert)",
+  "CC.theme.auto": "Automatique (comme les cartes de chat)",
+  "CC.theme.annees20": "Années 20 (Art Déco noir et or)",
+  "CC.theme.newyork": "New York années 20",
+  "CC.theme.montagnes": "Par-delà les Montagnes Hallucinées",
+  "CC.theme.ny2026": "New York 2026",
+  "CC.theme.antarctique2026": "Antarctique 2026"
 }

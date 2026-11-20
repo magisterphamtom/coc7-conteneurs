@@ -28,3 +28,13 @@
 ## v0.6.2 — icônes visibles
 - Boutons de l'en-tête des fenêtres de conteneur (menu ⋮, fermer ✕) invisibles : le style imposait la police du titre à ces boutons, qui sont eux-mêmes des icônes Font Awesome. Police du titre limitée au titre. Vérifié dans Foundry 14.368 + CoC7 9.2.
 - Flèche « sortir » et corbeille des objets : fond crème, icône brun foncé, **toujours visibles** (avant : seulement au survol).
+
+## v0.7.0 — apparence au choix et nombre d'objets
+- Deux réglages **par joueur** (portée client) : « Apparence de la fenêtre du conteneur » (style des cartes de chat d'origine / fiche thématique / fiche CoC7 de base beige à bandeau vert) et « Thème de la fenêtre » (automatique ou un des 5 thèmes).
+- Fiche thématique : variables `--ft-*` relues dans les feuilles de style du module « Fiches thématiques » et posées sur la fenêtre ; les `url()` relatives sont converties en chemins complets. Style d'origine avec le même thème que le chat : rien n'est recopié (héritage du `body`).
+- Fiche CoC7 de base : papier `assets/art/page-light.webp`, bandeau `--color-window-decoration`, titres `--color-labels`.
+- Liste d'équipement : pastille avec le nombre d'objets sur la valise et « (n) » à côté du nom (idée d'un utilisateur). Un conteneur vide n'affiche rien. Sur les fiches Investigateurs de l'Ombre : pastille seulement.
+- Piège vu en test : un fichier CSS/JS copié sur le PC peut ne pas être remplacé (ancien contenu servi) — toujours revérifier la taille du fichier installé.
+- Testé et validé par Stéphane dans Foundry (monde 1933).
+- À faire : confirmation avant suppression d'un conteneur non vide.
+

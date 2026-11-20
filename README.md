@@ -17,6 +17,13 @@ Chaque objet rangé compte pour son **poids × sa quantité** (champs « poids �
 ## Poupées russes
 Un conteneur peut en contenir d'autres, sans limite de niveaux : glisse un conteneur dans un autre (ex. un coffret de maquillage dans un sac à main). Sa tuile porte un badge doré avec le nombre d'objets qu'il contient ; un clic sur son nom l'ouvre dans une seconde fenêtre. On peut aussi glisser un objet directement sur la tuile du conteneur pour le ranger dedans, et déplacer un objet d'un conteneur à un autre.
 
+## Apparence de la fenêtre (0.7.0)
+Chaque joueur choisit dans **Configurer les paramètres → Modules → CoC7 Conteneurs** :
+- **Apparence** : style des cartes de chat (d'origine), fiche thématique, ou fiche CoC7 de base (papier beige, bandeau vert, titres rouges).
+- **Thème** : automatique (suit les cartes de chat) ou l'un des 5 thèmes.
+
+Dans la liste d'équipement, la valise porte une pastille avec le nombre d'objets rangés, et le nom du conteneur affiche « (n) » : on voit d'un coup d'œil qu'un sac n'est pas vide.
+
 ## Thème
 La fenêtre du conteneur suit le **thème choisi par chaque joueur** dans le module « CoC7 – Cartes de chat thématiques » (Années 20, New York années 20, Montagnes Hallucinées, New York 2026, Antarctique 2026) : couleurs, polices et arrondis. Chacun voit donc la fenêtre à son thème, et la bascule d'époque la change toute seule. Sans ce module, ou avec le thème « Aucun », la fenêtre garde son style par défaut (cuir sombre et filets dorés).
 

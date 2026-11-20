@@ -88,3 +88,71 @@ body .item-control.cc-ctrl:not([data-action]),
 body .item-control.cc-new-sheet:not([data-action]) {
   height: auto; min-height: 0; overflow: visible; pointer-events: auto; cursor: pointer;
 }
+
+/* =====================================================================
+   Apparence choisie par le joueur (réglages du module)
+   - chat  : rendu d'origine du module (rien à ajouter)
+   - fiche : comme la fiche d'investigateur thématique (variables --ft-* du thème)
+   - coc7  : style standard de Foundry / CoC7, sans thème
+   ===================================================================== */
+body .application.coc7-conteneurs-app.cc-look-fiche {
+  --cc-accent: var(--ft-accent, #c9a24a);
+  --cc-border: var(--ft-line, #7d6128);
+  --cc-ink: var(--ft-ink, #efe3c6);
+  --cc-dim: var(--ft-dim, #b9a984);
+  --cc-plain: var(--ft-panel, #15110c);
+  --cc-font-title: var(--ft-font-title, Georgia, serif);
+  --cc-font-body: var(--ft-font-body, Georgia, serif);
+  --cc-radius: var(--ft-radius, 2px);
+  background: var(--ft-bg, linear-gradient(180deg, #211a11, #15110c));
+  box-shadow: var(--ft-shadow, 0 6px 18px #000a);
+  border: 1px solid var(--ft-line, #7d6128);
+  outline: 0;
+}
+.cc-look-fiche .window-header {
+  background: var(--ft-header-bg, transparent);
+  color: var(--ft-header-ink, var(--cc-accent));
+  border-bottom: 2px solid var(--ft-header-rule, var(--cc-border));
+}
+.cc-look-fiche .window-header .window-title { color: var(--ft-header-ink, var(--cc-accent)); letter-spacing: var(--ft-title-spacing, 0); text-transform: uppercase; font-size: .85rem; }
+.cc-look-fiche .window-header button, .cc-look-fiche .window-header i { color: var(--ft-header-ink, var(--cc-accent)); }
+.cc-look-fiche .cc-zone { background: var(--ft-panel, rgba(0, 0, 0, .3)); border: 1px solid var(--ft-line, var(--cc-border)); }
+.cc-look-fiche .cc-head h2 { font-family: var(--cc-font-title); color: var(--ft-accent-strong, var(--cc-accent)); letter-spacing: var(--ft-title-spacing, 0); }
+.cc-look-fiche .cc-foot { font-family: var(--cc-font-body); }
+
+body .application.coc7-conteneurs-app.cc-look-coc7 {
+  /* palette de la fiche d'investigateur CoC7 : papier clair, bandeau vert, titres rouges */
+  --cc-accent: var(--color-labels, #922d2e);
+  --cc-border: color-mix(in srgb, var(--color-labels, #922d2e) 55%, transparent);
+  --cc-ink: #191813;
+  --cc-dim: #5b5648;
+  --cc-plain: #ebe4d2;
+  --cc-font-title: var(--coc7-font-sans-serif-main, Voltaire), 'Arial Narrow', sans-serif;
+  --cc-font-body: var(--coc7-font-serif, Lusitana), Georgia, serif;
+  --cc-radius: 4px;
+  background: #ebe4d2 url('/systems/CoC7/assets/art/page-light.webp') center / cover;
+  box-shadow: 0 6px 18px #0009;
+  border: 1px solid var(--color-window-decoration, #2c471d);
+  border-radius: 0 0 8px 8px;
+  outline: 0;
+}
+.cc-look-coc7 .window-header { background: var(--color-window-decoration, #2c471d); border: 0; color: #fff; }
+.cc-look-coc7 .window-header .window-title { color: #fff; font-family: var(--font-primary, 'Signika', sans-serif); font-size: var(--font-size-14, 14px); text-transform: none; letter-spacing: 0; }
+.cc-look-coc7 .window-header button, .cc-look-coc7 .window-header i { color: #fff; }
+.cc-look-coc7 .cc-head { border-bottom: 2px solid var(--cc-accent); }
+.cc-look-coc7 .cc-head h2 { font-family: var(--cc-font-title); color: var(--cc-accent); text-transform: uppercase; letter-spacing: .02em; }
+.cc-look-coc7 .cc-zone { background: rgba(0, 0, 0, .05); border: 1.5px dashed var(--cc-border); }
+.cc-look-coc7 .cc-foot, .cc-look-coc7 .cc-meta { font-family: var(--cc-font-body); color: var(--cc-dim); }
+.cc-look-coc7 .cc-frame { border-color: #fff; box-shadow: 0 1px 4px #0006; }
+.cc-look-coc7 .cc-name, .cc-look-coc7 .cc-label { color: var(--cc-ink); font-family: var(--cc-font-body); }
+
+/* v0.7.0 : nombre d'objets dans un conteneur (liste de la fiche) */
+.cc-count { font-weight: 700; color: #b8741a; white-space: nowrap; cursor: help; }
+.cc-ctrl[data-cc-count] { position: relative; }
+.cc-ctrl[data-cc-count]::after {
+  content: attr(data-cc-count);
+  position: absolute; top: -5px; right: -6px; min-width: 14px; height: 14px; padding: 0 3px;
+  box-sizing: border-box; border-radius: 7px; background: #b8741a; color: #fff;
+  font: 700 10px/14px sans-serif; text-align: center; pointer-events: none;
+  box-shadow: 0 0 0 1px #fff8;
+}
